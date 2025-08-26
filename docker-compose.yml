@@ -1,14 +1,7 @@
 version: '3.8'
 
-# Define the services for your application
 services:
   web:
-    # Use the 'build' key to tell Docker Compose to build an image
-    # from the Dockerfile in the current directory ('.').
     build: .
-    # Map port 5000 from the container to port 5000 on the host machine.
-    # This allows you to access the web application from your browser.
     ports:
       - "5000:5000"
-    # Restart the container if it fails.
-    restart: always
