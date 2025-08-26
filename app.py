@@ -6,7 +6,7 @@ from datetime import datetime
 import asyncio
 import time
 
-# Import database wrapper (commented out for now)
+# Import our database mediation layer
 # from database_wrapper import db_mediator, initialize_remote_databases, cached_search, cached_stats, get_health_status
 
 # Set page config
@@ -145,7 +145,6 @@ with top_col3:
     chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series, or database...", key="chat_input")
     if st.button("💬 Send", key="send_chat") and chat_input:
         st.session_state.chat_messages.append({"role": "user", "message": chat_input})
-        # Simple bot response logic
         bot_response = "I can help with movie/series searches, database info, or recommendations."
         st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
         st.rerun()
@@ -156,6 +155,7 @@ with top_col3:
 st.markdown('<div class="global-schema"><div class="box-content">', unsafe_allow_html=True)
 st.markdown("### 🌐 Global Schema View Result")
 
+# Correct indentation: top-level, no extra spaces
 if execute_search or query_input:
     search_query = query_input or search_term
     if search_query:
