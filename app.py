@@ -7,7 +7,7 @@ import asyncio
 import time
 
 # Import our database mediation layer
-from database_wrapper import db_mediator, initialize_remote_databases, cached_search, cached_stats, get_health_status
+#from database_wrapper import db_mediator, initialize_remote_databases, cached_search, cached_stats, get_health_status
 
 # Set page config
 st.set_page_config(
