@@ -20,6 +20,13 @@ st.markdown("""
 }
 .wrapper-box {height: 300px;}
 .global-schema-box {height: 400px;}
+.chat-message-container {
+    height: 200px; /* Adjust height as needed */
+    overflow-y: auto;
+    padding: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 0.5rem;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -39,6 +46,7 @@ top_col1, top_col2 = st.columns([1, 1])
 
 with top_col1:
     st.markdown('<div class="filter-box">### 🔍 Filter Area</div>', unsafe_allow_html=True)
+    st.write("") # Add a small spacer
     search_term = st.text_input("Search Term", placeholder="Enter movie or series name...", key="filter_search")
     include_movies = st.checkbox("Include Movies", value=True)
     include_series = st.checkbox("Include Series", value=True)
@@ -46,24 +54,24 @@ with top_col1:
 with top_col2:
     st.markdown('<div class="chatbot-box">### 🤖 Chat Bot</div>', unsafe_allow_html=True)
     
-    # Create a placeholder for chat messages
-    chat_history_container = st.empty()
-    
-    # Display initial chat messages in the placeholder
-    with chat_history_container.container():
-        for msg in st.session_state.chat_messages[-5:]:
-            if msg["role"] == "bot":
-                st.markdown(f'🤖 {msg["message"]}')
-            else:
-                st.markdown(f'👤 {msg["message"]}')
+    # Place chat history and input inside the chatbox container
+    with st.container():
+        # Display chat messages within a scrollable area
+        chat_history_placeholder = st.empty()
+        with chat_history_placeholder.container():
+            for msg in st.session_state.chat_messages:
+                if msg["role"] == "bot":
+                    st.markdown(f'🤖 {msg["message"]}')
+                else:
+                    st.markdown(f'👤 {msg["message"]}')
 
-    chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", key="chat_input")
-    
-    if st.button("Send", key="send_chat") and chat_input:
-        st.session_state.chat_messages.append({"role": "user", "message": chat_input})
-        bot_response = f"Received your question: {chat_input}"
-        st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
-        st.rerun()
+        chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", key="chat_input")
+        
+        if st.button("Send", key="send_chat") and chat_input:
+            st.session_state.chat_messages.append({"role": "user", "message": chat_input})
+            bot_response = f"Received your question: {chat_input}"
+            st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
+            st.rerun()
 
 # MIDDLE ROW: MEDIATION (Query Results)
 st.markdown('<div class="mediation-box">### 🔄 Mediation: Queries from Filter or Chatbot will appear here</div>', unsafe_allow_html=True)
