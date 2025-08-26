@@ -23,10 +23,35 @@ st.markdown("""
 }
 .filter-box { height: 350px; }
 .chatbot-box { height: 350px; display: flex; flex-direction: column; }
-.chat-history-container { flex: 1; overflow-y: auto; padding-bottom: 10px; }
+.chat-history-container { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding-bottom: 10px; 
+    max-height: 200px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
 .mediation-box { height: 350px; }
 .wrapper-box { height: 300px; }
 .global-schema-box { height: 400px; }
+.chat-message {
+    margin: 5px 0;
+    padding: 5px;
+}
+.user-message {
+    background-color: #e3f2fd;
+    border-radius: 5px;
+    padding: 8px;
+    margin: 5px 0;
+}
+.bot-message {
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    padding: 8px;
+    margin: 5px 0;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -46,65 +71,124 @@ top_col1, top_col2 = st.columns([1, 1])
 
 with top_col1:
     with st.container():
-        st.markdown('<div class="custom-box filter-box">### 🔍 Filter Area', unsafe_allow_html=True)
+        st.markdown('<div class="custom-box filter-box">', unsafe_allow_html=True)
+        st.markdown("### 🔍 Filter Area")
         search_term = st.text_input("Search Term", placeholder="Enter movie or series name...", key="filter_search")
         include_movies = st.checkbox("Include Movies", value=True)
         include_series = st.checkbox("Include Series", value=True)
+        
+        # Add search button for filter
+        if st.button("Search", key="search_filter"):
+            if search_term:
+                # Trigger search results update
+                st.session_state.last_search = search_term
         st.markdown('</div>', unsafe_allow_html=True)
 
 with top_col2:
     with st.container():
-        st.markdown('<div class="custom-box chatbot-box">### 🤖 Chat Bot', unsafe_allow_html=True)
+        st.markdown('<div class="custom-box chatbot-box">', unsafe_allow_html=True)
+        st.markdown("### 🤖 Chat Bot")
         
-        # Use a sub-container for the chat history
-        with st.container():
+        # Chat history display
+        chat_container = st.container()
+        with chat_container:
             st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
-            for msg in st.session_state.chat_messages:
+            for i, msg in enumerate(st.session_state.chat_messages):
                 if msg["role"] == "bot":
-                    st.markdown(f'🤖 {msg["message"]}')
+                    st.markdown(f'<div class="bot-message">🤖 {msg["message"]}</div>', unsafe_allow_html=True)
                 else:
-                    st.markdown(f'👤 {msg["message"]}')
+                    st.markdown(f'<div class="user-message">👤 {msg["message"]}</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", key="chat_input")
-        if st.button("Send", key="send_chat") and chat_input:
+        # Chat input section
+        chat_col1, chat_col2 = st.columns([4, 1])
+        with chat_col1:
+            chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", key="chat_input", label_visibility="collapsed")
+        with chat_col2:
+            send_clicked = st.button("Send", key="send_chat", use_container_width=True)
+        
+        # Handle chat input
+        if send_clicked and chat_input.strip():
+            # Add user message
             st.session_state.chat_messages.append({"role": "user", "message": chat_input})
-            bot_response = f"Received your question: {chat_input}"
+            # Add bot response
+            bot_response = f"Received your question: '{chat_input}'. Let me search for that information!"
             st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
+            # Trigger search based on chat input
+            st.session_state.last_search = chat_input
+            # Rerun to update display
             st.rerun()
             
         st.markdown('</div>', unsafe_allow_html=True)
 
 # MIDDLE ROW: MEDIATION (Query Results)
-st.markdown('<div class="custom-box mediation-box">### 🔄 Mediation: Queries from Filter or Chatbot will appear here</div>', unsafe_allow_html=True)
+with st.container():
+    st.markdown('<div class="custom-box mediation-box">', unsafe_allow_html=True)
+    st.markdown("### 🔄 Mediation: Queries from Filter or Chatbot will appear here")
+    
+    # Show current search status
+    if hasattr(st.session_state, 'last_search'):
+        st.info(f"Last search: '{st.session_state.last_search}'")
+        st.markdown("**Processing query and fetching results from wrappers...**")
+    else:
+        st.markdown("*No queries yet. Use the filter area or chat with BingeBot to start searching.*")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# PLACEHOLDER LOGIC: FILL SEARCH RESULTS BASED ON FILTER / CHAT
-if search_term or chat_input:
-    st.session_state.search_results["movies"] = [
-        {"title": "Movie A", "year": 2022, "genre": "Action", "rating": 8.5, "director": "Dir A"},
-        {"title": "Movie B", "year": 2020, "genre": "Comedy", "rating": 7.2, "director": "Dir B"}
-    ] if include_movies else []
-    st.session_state.search_results["series"] = [
-        {"title": "Series X", "seasons": 3, "genre": "Drama", "rating": 9.0, "network": "Netflix"},
-        {"title": "Series Y", "seasons": 2, "genre": "Thriller", "rating": 8.1, "network": "HBO"}
-    ] if include_series else []
+# UPDATE SEARCH RESULTS BASED ON FILTER OR CHAT
+if search_term or hasattr(st.session_state, 'last_search'):
+    current_search = search_term or getattr(st.session_state, 'last_search', '')
+    if current_search:
+        # Simulate database search results
+        st.session_state.search_results["movies"] = [
+            {"title": f"Movie matching '{current_search}'", "year": 2022, "genre": "Action", "rating": 8.5, "director": "Dir A"},
+            {"title": f"Another Movie with '{current_search}'", "year": 2020, "genre": "Comedy", "rating": 7.2, "director": "Dir B"}
+        ] if include_movies else []
+        st.session_state.search_results["series"] = [
+            {"title": f"Series about '{current_search}'", "seasons": 3, "genre": "Drama", "rating": 9.0, "network": "Netflix"},
+            {"title": f"'{current_search}' TV Show", "seasons": 2, "genre": "Thriller", "rating": 8.1, "network": "HBO"}
+        ] if include_series else []
 
 # NEXT ROW: WRAPPER 1 AND WRAPPER 2
 wrapper_col1, wrapper_col2 = st.columns(2)
 
 with wrapper_col1:
-    st.markdown('<div class="custom-box wrapper-box">### 🎬 Wrapper 1: Movies</div>', unsafe_allow_html=True)
-    for movie in st.session_state.search_results.get("movies", []):
-        st.markdown(f"- {movie['title']} ({movie['year']}) | Genre: {movie['genre']} | Rating: {movie['rating']}")
+    st.markdown('<div class="custom-box wrapper-box">', unsafe_allow_html=True)
+    st.markdown("### 🎬 Wrapper 1: Movies")
+    movies = st.session_state.search_results.get("movies", [])
+    if movies:
+        for movie in movies:
+            st.markdown(f"- **{movie['title']}** ({movie['year']}) | Genre: {movie['genre']} | Rating: {movie['rating']}")
+    else:
+        st.markdown("*No movies found or movies not included in search.*")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 with wrapper_col2:
-    st.markdown('<div class="custom-box wrapper-box">### 📺 Wrapper 2: Series</div>', unsafe_allow_html=True)
-    for series in st.session_state.search_results.get("series", []):
-        st.markdown(f"- {series['title']} | Seasons: {series['seasons']} | Genre: {series['genre']} | Rating: {series['rating']} | Network: {series['network']}")
+    st.markdown('<div class="custom-box wrapper-box">', unsafe_allow_html=True)
+    st.markdown("### 📺 Wrapper 2: Series")
+    series = st.session_state.search_results.get("series", [])
+    if series:
+        for s in series:
+            st.markdown(f"- **{s['title']}** | Seasons: {s['seasons']} | Genre: {s['genre']} | Rating: {s['rating']} | Network: {s['network']}")
+    else:
+        st.markdown("*No series found or series not included in search.*")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # BOTTOM ROW: GLOBAL SCHEMA VIEW
-st.markdown('<div class="custom-box global-schema-box">### 🌐 Global Schema View (Merged results from both wrappers)</div>', unsafe_allow_html=True)
-for movie in st.session_state.search_results.get("movies", []):
-    st.markdown(f"🎬 {movie['title']} ({movie['year']})")
-for series in st.session_state.search_results.get("series", []):
-    st.markdown(f"📺 {series['title']} ({series['seasons']} seasons)")
+with st.container():
+    st.markdown('<div class="custom-box global-schema-box">', unsafe_allow_html=True)
+    st.markdown("### 🌐 Global Schema View (Merged results from both wrappers)")
+    
+    all_results = []
+    for movie in st.session_state.search_results.get("movies", []):
+        all_results.append(f"🎬 **{movie['title']}** ({movie['year']}) - {movie['genre']}")
+    for series in st.session_state.search_results.get("series", []):
+        all_results.append(f"📺 **{series['title']}** ({series['seasons']} seasons) - {series['genre']}")
+    
+    if all_results:
+        for result in all_results:
+            st.markdown(result)
+    else:
+        st.markdown("*No results to display. Start searching to see merged results.*")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
