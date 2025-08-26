@@ -8,7 +8,7 @@ import time
 
 # Set page config
 st.set_page_config(
-    page_title="IIA Test Dashboard",
+    page_title="IIA Dashboard",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
