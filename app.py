@@ -42,7 +42,7 @@ st.markdown("""
     
     .filter-box {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 1.5rem;
+        padding: 0;
         border-radius: 15px;
         color: white !important;
         margin: 0.5rem 0;
@@ -53,7 +53,7 @@ st.markdown("""
     
     .llm-chatbot {
         background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-        padding: 1.5rem;
+        padding: 0;
         border-radius: 15px;
         color: white !important;
         margin: 0.5rem 0;
@@ -64,7 +64,7 @@ st.markdown("""
     
     .mediation-query {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-        padding: 1.5rem;
+        padding: 0;
         border-radius: 15px;
         color: white !important;
         margin: 0.5rem 0;
@@ -75,13 +75,19 @@ st.markdown("""
     
     .global-schema {
         background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-        padding: 1.5rem;
+        padding: 0;
         border-radius: 15px;
         color: white !important;
         margin: 0.5rem 0;
         box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         height: 500px;
         overflow-y: auto;
+    }
+    
+    /* Box content styling with proper padding */
+    .box-content {
+        padding: 1.5rem;
+        height: 100%;
     }
     
     .movie-card {
@@ -229,151 +235,154 @@ top_col1, top_col2, top_col3 = st.columns([1, 2, 1])
 
 # FILTER BOX (Left top)
 with top_col1:
-    with st.container():
-        st.markdown('<div class="filter-box">', unsafe_allow_html=True)
-        st.markdown("### 🔍 Filter Box")
-        
-        # Basic search filters
-        search_term = st.text_input(
-            "Search Term",
-            placeholder="Enter movie or series name...",
-            key="filter_search"
-        )
-        
-        search_field = st.selectbox(
-            "Search Field",
-            ["title", "genre", "director", "cast", "network", "year", "rating"],
-            key="filter_field"
-        )
-        
-        # Database selection
-        st.markdown("**Database Sources:**")
-        include_movies = st.checkbox("🎬 Include Movies", value=True, key="filter_movies")
-        include_series = st.checkbox("📺 Include Series", value=True, key="filter_series")
-        
-        # Genre filters
-        genre_options = st.multiselect(
-            "Genres",
-            ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Crime", "Fantasy", "Documentary"],
-            key="filter_genres"
-        )
-        
-        # Year range
-        col_year1, col_year2 = st.columns(2)
-        with col_year1:
-            year_from = st.number_input("Year From", min_value=1900, max_value=2024, value=2000, key="filter_year_from")
-        with col_year2:
-            year_to = st.number_input("Year To", min_value=1900, max_value=2024, value=2024, key="filter_year_to")
-        
-        # Rating filter
-        min_rating = st.number_input("Minimum Rating", min_value=0.0, max_value=10.0, value=0.0, step=0.1, key="filter_rating")
-        
-        # Results limit
-        results_limit = st.number_input("Results Limit", min_value=5, max_value=100, value=25, key="filter_limit")
-        
-        # Network filter for series
-        network_options = st.multiselect(
-            "Networks",
-            ["Netflix", "HBO", "Amazon Prime", "Disney+", "Hulu", "NBC", "CBS", "Fox", "AMC", "BBC"],
-            key="filter_networks"
-        )
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="filter-box">', unsafe_allow_html=True)
+    st.markdown('<div class="box-content">', unsafe_allow_html=True)
+    st.markdown("### 🔍 Filter Box")
+    
+    # Basic search filters
+    search_term = st.text_input(
+        "Search Term",
+        placeholder="Enter movie or series name...",
+        key="filter_search"
+    )
+    
+    search_field = st.selectbox(
+        "Search Field",
+        ["title", "genre", "director", "cast", "network", "year", "rating"],
+        key="filter_field"
+    )
+    
+    # Database selection
+    st.markdown("**Database Sources:**")
+    include_movies = st.checkbox("🎬 Include Movies", value=True, key="filter_movies")
+    include_series = st.checkbox("📺 Include Series", value=True, key="filter_series")
+    
+    # Genre filters
+    genre_options = st.multiselect(
+        "Genres",
+        ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Crime", "Fantasy", "Documentary"],
+        key="filter_genres"
+    )
+    
+    # Year range
+    col_year1, col_year2 = st.columns(2)
+    with col_year1:
+        year_from = st.number_input("Year From", min_value=1900, max_value=2024, value=2000, key="filter_year_from")
+    with col_year2:
+        year_to = st.number_input("Year To", min_value=1900, max_value=2024, value=2024, key="filter_year_to")
+    
+    # Rating filter
+    min_rating = st.number_input("Minimum Rating", min_value=0.0, max_value=10.0, value=0.0, step=0.1, key="filter_rating")
+    
+    # Results limit
+    results_limit = st.number_input("Results Limit", min_value=5, max_value=100, value=25, key="filter_limit")
+    
+    # Network filter for series
+    network_options = st.multiselect(
+        "Networks",
+        ["Netflix", "HBO", "Amazon Prime", "Disney+", "Hulu", "NBC", "CBS", "Fox", "AMC", "BBC"],
+        key="filter_networks"
+    )
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # MEDIATION QUERY (Center top)
 with top_col2:
-    with st.container():
-        st.markdown('<div class="mediation-query">', unsafe_allow_html=True)
-        st.markdown("### 🔄 Mediation Query")
+    st.markdown('<div class="mediation-query">', unsafe_allow_html=True)
+    st.markdown('<div class="box-content">', unsafe_allow_html=True)
+    st.markdown("### 🔄 Mediation Query")
+    
+    # Query tabs
+    query_tab = st.selectbox(
+        "Query Type",
+        ["Search", "Statistics", "Health Check"],
+        key="query_tab"
+    )
+    
+    # Query input
+    query_input = st.text_input(
+        "Enter Query",
+        placeholder="Search across distributed databases...",
+        key="mediation_query"
+    )
+    
+    # Execute button
+    col_btn1, col_btn2, col_btn3 = st.columns(3)
+    with col_btn1:
+        execute_search = st.button("🚀 Execute Search", type="primary")
+    with col_btn2:
+        get_stats = st.button("📊 Get Stats")
+    with col_btn3:
+        health_check = st.button("🏥 Health Check")
+    
+    # Quick stats display
+    try:
+        stats = cached_stats() if mediator else {}
+        movies_stats = stats.get("movies", [{}])[0] if stats.get("movies") else {}
+        series_stats = stats.get("series", [{}])[0] if stats.get("series") else {}
         
-        # Query tabs
-        query_tab = st.selectbox(
-            "Query Type",
-            ["Search", "Statistics", "Health Check"],
-            key="query_tab"
-        )
-        
-        # Query input
-        query_input = st.text_input(
-            "Enter Query",
-            placeholder="Search across distributed databases...",
-            key="mediation_query"
-        )
-        
-        # Execute button
-        col_btn1, col_btn2, col_btn3 = st.columns(3)
-        with col_btn1:
-            execute_search = st.button("🚀 Execute Search", type="primary")
-        with col_btn2:
-            get_stats = st.button("📊 Get Stats")
-        with col_btn3:
-            health_check = st.button("🏥 Health Check")
-        
-        # Quick stats display
-        try:
-            stats = cached_stats() if mediator else {}
-            movies_stats = stats.get("movies", [{}])[0] if stats.get("movies") else {}
-            series_stats = stats.get("series", [{}])[0] if stats.get("series") else {}
-            
-            stat_col1, stat_col2, stat_col3 = st.columns(3)
-            with stat_col1:
-                st.metric("🎬 Movies", f"{movies_stats.get('total_movies', 0):,}")
-            with stat_col2:
-                st.metric("📺 Series", f"{series_stats.get('total_series', 0):,}")
-            with stat_col3:
-                st.metric("🔗 Connected", f"{connected_dbs}/2")
-        except:
-            st.info("Stats unavailable")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+        stat_col1, stat_col2, stat_col3 = st.columns(3)
+        with stat_col1:
+            st.metric("🎬 Movies", f"{movies_stats.get('total_movies', 0):,}")
+        with stat_col2:
+            st.metric("📺 Series", f"{series_stats.get('total_series', 0):,}")
+        with stat_col3:
+            st.metric("🔗 Connected", f"{connected_dbs}/2")
+    except:
+        st.info("Stats unavailable")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # LLM CHATBOT (Right top)
 with top_col3:
-    with st.container():
-        st.markdown('<div class="llm-chatbot">', unsafe_allow_html=True)
-        st.markdown("### 🤖 LLM Chatbot")
-        
-        # Chat messages display
-        chat_container = st.container()
-        with chat_container:
-            for msg in st.session_state.chat_messages[-10:]:  # Show last 10 messages
-                if msg["role"] == "bot":
-                    st.markdown(f'<div class="chat-message">🤖 <strong>BingeBot:</strong> {msg["message"]}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="chat-message user-message">👤 <strong>You:</strong> {msg["message"]}</div>', unsafe_allow_html=True)
-        
-        # Chat input
-        chat_input = st.text_input(
-            "Ask BingeBot",
-            placeholder="Ask about movies, series, or database...",
-            key="chat_input"
-        )
-        
-        if st.button("💬 Send", key="send_chat") and chat_input:
-            # Add user message
-            st.session_state.chat_messages.append({"role": "user", "message": chat_input})
-            
-            # Generate bot response
-            if "movie" in chat_input.lower():
-                bot_response = f"I can help you find movies! Try searching for specific titles, genres, or directors using the search functionality."
-            elif "series" in chat_input.lower() or "show" in chat_input.lower():
-                bot_response = f"Looking for TV series? Use the filters to narrow down by network, genre, or rating."
-            elif "database" in chat_input.lower():
-                bot_response = f"Our system connects to {connected_dbs} databases via Tailscale. Movies are stored in PostgreSQL, Series in MySQL."
-            elif "search" in chat_input.lower():
-                bot_response = "You can search by title, genre, director, cast, network, year, or rating. Use the filters on the left!"
+    st.markdown('<div class="llm-chatbot">', unsafe_allow_html=True)
+    st.markdown('<div class="box-content">', unsafe_allow_html=True)
+    st.markdown("### 🤖 LLM Chatbot")
+    
+    # Chat messages display
+    chat_container = st.container()
+    with chat_container:
+        for msg in st.session_state.chat_messages[-10:]:  # Show last 10 messages
+            if msg["role"] == "bot":
+                st.markdown(f'<div class="chat-message">🤖 <strong>BingeBot:</strong> {msg["message"]}</div>', unsafe_allow_html=True)
             else:
-                bot_response = "I can help with movie/series searches, database info, or recommendations. What would you like to know?"
-            
-            st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
-            st.rerun()
+                st.markdown(f'<div class="chat-message user-message">👤 <strong>You:</strong> {msg["message"]}</div>', unsafe_allow_html=True)
+    
+    # Chat input
+    chat_input = st.text_input(
+        "Ask BingeBot",
+        placeholder="Ask about movies, series, or database...",
+        key="chat_input"
+    )
+    
+    if st.button("💬 Send", key="send_chat") and chat_input:
+        # Add user message
+        st.session_state.chat_messages.append({"role": "user", "message": chat_input})
         
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Generate bot response
+        if "movie" in chat_input.lower():
+            bot_response = f"I can help you find movies! Try searching for specific titles, genres, or directors using the search functionality."
+        elif "series" in chat_input.lower() or "show" in chat_input.lower():
+            bot_response = f"Looking for TV series? Use the filters to narrow down by network, genre, or rating."
+        elif "database" in chat_input.lower():
+            bot_response = f"Our system connects to {connected_dbs} databases via Tailscale. Movies are stored in PostgreSQL, Series in MySQL."
+        elif "search" in chat_input.lower():
+            bot_response = "You can search by title, genre, director, cast, network, year, or rating. Use the filters on the left!"
+        else:
+            bot_response = "I can help with movie/series searches, database info, or recommendations. What would you like to know?"
+        
+        st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
+        st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # GLOBAL SCHEMA VIEW RESULT (Bottom full width)
-with st.container():
-    st.markdown('<div class="global-schema">', unsafe_allow_html=True)
-    st.markdown("### 🌐 Global Schema View Result")
+st.markdown('<div class="global-schema">', unsafe_allow_html=True)
+st.markdown('<div class="box-content">', unsafe_allow_html=True)
+st.markdown("### 🌐 Global Schema View Result")
 
     # Execute search logic
     if execute_search or query_input:
@@ -492,7 +501,8 @@ with st.container():
     else:
         st.info("🔍 Use the Mediation Query section above to search, get statistics, or perform health checks")
 
-    st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
