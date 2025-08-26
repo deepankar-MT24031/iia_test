@@ -22,53 +22,17 @@ st.markdown("""
     border: 1px solid #e0e0e0;
 }
 .filter-box { height: 350px; }
-.chatbot-box { 
-    height: 350px !important; 
-    display: flex !important; 
-    flex-direction: column !important;
-    overflow: hidden !important;
-}
-.chat-history-container { 
-    height: 240px !important;
-    overflow-y: auto !important; 
-    border: 1px solid #ddd;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    background-color: #fafafa;
-    flex-shrink: 0 !important;
-}
-.chat-input-container {
-    height: 80px !important;
-    flex-shrink: 0 !important;
-    margin-top: auto !important;
-}
+.chatbot-box { height: 350px; }
 .mediation-box { height: 350px; }
 .wrapper-box { height: 300px; }
 .global-schema-box { height: 400px; }
-.chat-message {
-    margin: 5px 0;
-    padding: 5px;
-}
-.user-message {
-    background-color: #e3f2fd;
-    border-radius: 5px;
-    padding: 8px;
-    margin: 5px 0;
-}
-.bot-message {
-    background-color: #f5f5f5;
-    border-radius: 5px;
-    padding: 8px;
-    margin: 5px 0;
-}
 </style>
 """, unsafe_allow_html=True)
 
 # Initialize session state
 if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = [
-        {"role": "bot", "message": "Hi! I'm BingeBot. Ask me about movies, series, or database operations!"}
+        {"role": "assistant", "message": "Hi! I'm BingeBot. Ask me about movies, series, or database operations!"}
     ]
 if "search_results" not in st.session_state:
     st.session_state.search_results = {"movies": [], "series": []}
@@ -103,35 +67,29 @@ with top_col2:
         st.markdown('<div class="custom-box chatbot-box">', unsafe_allow_html=True)
         st.markdown("### 🤖 Chat Bot")
         
-        # Chat history display with fixed height
-        st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
-        for i, msg in enumerate(st.session_state.chat_messages):
-            if msg["role"] == "bot":
-                st.markdown(f'<div class="bot-message">🤖 {msg["message"]}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="user-message">👤 {msg["message"]}</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Display chat messages using Streamlit's chat components
+        for message in st.session_state.chat_messages:
+            with st.chat_message(message["role"]):
+                st.markdown(message["message"])
 
-        # Chat input section
-        st.markdown('<div class="chat-input-container">', unsafe_allow_html=True)
-        with st.form(key="chat_form", clear_on_submit=True):
-            chat_input = st.text_input("", placeholder="Ask about movies, series...", label_visibility="collapsed")
-            send_clicked = st.form_submit_button("Send", use_container_width=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+        # Chat input using Streamlit's chat input component
+        if prompt := st.chat_input("Ask about movies, series, or database operations..."):
+            # Add user message to chat history
+            st.session_state.chat_messages.append({"role": "user", "message": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
 
-# Handle chat input outside the container to avoid layout issues
-if send_clicked and chat_input.strip():
-    # Add user message
-    st.session_state.chat_messages.append({"role": "user", "message": chat_input.strip()})
-    # Add bot response
-    bot_response = f"Searching for: '{chat_input.strip()}'"
-    st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
-    # Trigger search based on chat input
-    st.session_state.last_search = chat_input.strip()
-    # Rerun to update display
-    st.rerun()
+            # Generate bot response
+            response = f"Searching for: '{prompt}'"
+            # Add assistant response to chat history
+            st.session_state.chat_messages.append({"role": "assistant", "message": response})
+            with st.chat_message("assistant"):
+                st.markdown(response)
+                
+            # Trigger search based on chat input
+            st.session_state.last_search = prompt
+
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # MIDDLE ROW: MEDIATION (Query Results)
 with st.container():
