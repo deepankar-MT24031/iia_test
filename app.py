@@ -21,8 +21,8 @@ st.markdown("""
     color: #333333;
     border: 1px solid #e0e0e0;
 }
-.filter-box { height: 350px; }
-.chatbot-box { height: 350px; }
+.filter-box { height: 200px; }
+.chatbot-box { height: 300px; overflow-y: auto; }
 .mediation-box { height: 350px; }
 .wrapper-box { height: 300px; }
 .global-schema-box { height: 400px; }
@@ -44,52 +44,49 @@ if "last_processed" not in st.session_state:
 # HEADER
 st.markdown('<h1 class="main-header">🎬 BingeBox</h1>', unsafe_allow_html=True)
 
-# TOP ROW: FILTER AREA AND CHAT BOT
-top_col1, top_col2 = st.columns([1, 1])
-
-with top_col1:
-    with st.container():
-        st.markdown('<div class="custom-box filter-box">', unsafe_allow_html=True)
-        st.markdown("### 🔍 Filter Area")
+# TOP ROW: FILTER AREA ONLY
+with st.container():
+    st.markdown('<div class="custom-box filter-box">', unsafe_allow_html=True)
+    st.markdown("### 🔍 Filter Area")
+    
+    filter_col1, filter_col2, filter_col3 = st.columns([2, 1, 1])
+    with filter_col1:
         search_term = st.text_input("Search Term", placeholder="Enter movie or series name...", key="filter_search")
+    with filter_col2:
         include_movies = st.checkbox("Include Movies", value=True)
+    with filter_col3:
         include_series = st.checkbox("Include Series", value=True)
-        
-        # Add search button for filter
-        if st.button("Search", key="search_filter"):
-            if search_term:
-                # Trigger search results update
-                st.session_state.last_search = search_term
-        st.markdown('</div>', unsafe_allow_html=True)
+    
+    if st.button("Search", key="search_filter"):
+        if search_term:
+            # Trigger search results update
+            st.session_state.last_search = search_term
+    st.markdown('</div>', unsafe_allow_html=True)
 
-with top_col2:
-    with st.container():
-        st.markdown('<div class="custom-box chatbot-box">', unsafe_allow_html=True)
-        st.markdown("### 🤖 Chat Bot")
-        
-        # Display chat messages using Streamlit's chat components
-        for message in st.session_state.chat_messages:
-            with st.chat_message(message["role"]):
-                st.markdown(message["message"])
+# CHAT SECTION
+st.markdown('<div class="custom-box chatbot-box">', unsafe_allow_html=True)
+st.markdown("### 🤖 Chat Bot")
 
-        # Chat input using Streamlit's chat input component
-        if prompt := st.chat_input("Ask about movies, series, or database operations..."):
-            # Add user message to chat history
-            st.session_state.chat_messages.append({"role": "user", "message": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
+# Display chat messages
+for message in st.session_state.chat_messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["message"])
 
-            # Generate bot response
-            response = f"Searching for: '{prompt}'"
-            # Add assistant response to chat history
-            st.session_state.chat_messages.append({"role": "assistant", "message": response})
-            with st.chat_message("assistant"):
-                st.markdown(response)
-                
-            # Trigger search based on chat input
-            st.session_state.last_search = prompt
+st.markdown('</div>', unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+# Chat input (must be outside any containers/columns)
+if prompt := st.chat_input("Ask BingeBot about movies, series, or database operations..."):
+    # Add user message to chat history
+    st.session_state.chat_messages.append({"role": "user", "message": prompt})
+    
+    # Generate bot response
+    response = f"Searching for: '{prompt}'"
+    # Add assistant response to chat history
+    st.session_state.chat_messages.append({"role": "assistant", "message": response})
+    
+    # Trigger search based on chat input
+    st.session_state.last_search = prompt
+    st.rerun()
 
 # MIDDLE ROW: MEDIATION (Query Results)
 with st.container():
