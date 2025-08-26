@@ -22,16 +22,26 @@ st.markdown("""
     border: 1px solid #e0e0e0;
 }
 .filter-box { height: 350px; }
-.chatbot-box { height: 350px; display: flex; flex-direction: column; }
+.chatbot-box { 
+    height: 350px !important; 
+    display: flex !important; 
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
 .chat-history-container { 
-    flex: 1; 
-    overflow-y: auto; 
-    padding-bottom: 10px; 
-    max-height: 200px;
+    height: 240px !important;
+    overflow-y: auto !important; 
     border: 1px solid #ddd;
     padding: 10px;
     margin-bottom: 10px;
     border-radius: 5px;
+    background-color: #fafafa;
+    flex-shrink: 0 !important;
+}
+.chat-input-container {
+    height: 80px !important;
+    flex-shrink: 0 !important;
+    margin-top: auto !important;
 }
 .mediation-box { height: 350px; }
 .wrapper-box { height: 300px; }
@@ -93,35 +103,35 @@ with top_col2:
         st.markdown('<div class="custom-box chatbot-box">', unsafe_allow_html=True)
         st.markdown("### 🤖 Chat Bot")
         
-        # Chat history display
-        chat_container = st.container()
-        with chat_container:
-            st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
-            for i, msg in enumerate(st.session_state.chat_messages):
-                if msg["role"] == "bot":
-                    st.markdown(f'<div class="bot-message">🤖 {msg["message"]}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown(f'<div class="user-message">👤 {msg["message"]}</div>', unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        # Chat input section - using form to handle submission properly
-        with st.form(key="chat_form", clear_on_submit=True):
-            chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", label_visibility="collapsed")
-            send_clicked = st.form_submit_button("Send", use_container_width=True)
-        
-        # Handle chat input
-        if send_clicked and chat_input.strip():
-            # Add user message
-            st.session_state.chat_messages.append({"role": "user", "message": chat_input.strip()})
-            # Add bot response
-            bot_response = f"Searching for: '{chat_input.strip()}'"
-            st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
-            # Trigger search based on chat input
-            st.session_state.last_search = chat_input.strip()
-            # Rerun to update display
-            st.rerun()
-            
+        # Chat history display with fixed height
+        st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
+        for i, msg in enumerate(st.session_state.chat_messages):
+            if msg["role"] == "bot":
+                st.markdown(f'<div class="bot-message">🤖 {msg["message"]}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="user-message">👤 {msg["message"]}</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
+
+        # Chat input section
+        st.markdown('<div class="chat-input-container">', unsafe_allow_html=True)
+        with st.form(key="chat_form", clear_on_submit=True):
+            chat_input = st.text_input("", placeholder="Ask about movies, series...", label_visibility="collapsed")
+            send_clicked = st.form_submit_button("Send", use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# Handle chat input outside the container to avoid layout issues
+if send_clicked and chat_input.strip():
+    # Add user message
+    st.session_state.chat_messages.append({"role": "user", "message": chat_input.strip()})
+    # Add bot response
+    bot_response = f"Searching for: '{chat_input.strip()}'"
+    st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
+    # Trigger search based on chat input
+    st.session_state.last_search = chat_input.strip()
+    # Rerun to update display
+    st.rerun()
 
 # MIDDLE ROW: MEDIATION (Query Results)
 with st.container():
