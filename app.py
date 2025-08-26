@@ -62,6 +62,10 @@ if "chat_messages" not in st.session_state:
     ]
 if "search_results" not in st.session_state:
     st.session_state.search_results = {"movies": [], "series": []}
+if "current_input" not in st.session_state:
+    st.session_state.current_input = ""
+if "last_processed" not in st.session_state:
+    st.session_state.last_processed = ""
 
 # HEADER
 st.markdown('<h1 class="main-header">🎬 BingeBox</h1>', unsafe_allow_html=True)
@@ -100,22 +104,20 @@ with top_col2:
                     st.markdown(f'<div class="user-message">👤 {msg["message"]}</div>', unsafe_allow_html=True)
             st.markdown('</div>', unsafe_allow_html=True)
 
-        # Chat input section
-        chat_col1, chat_col2 = st.columns([4, 1])
-        with chat_col1:
-            chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", key="chat_input", label_visibility="collapsed")
-        with chat_col2:
-            send_clicked = st.button("Send", key="send_chat", use_container_width=True)
+        # Chat input section - using form to handle submission properly
+        with st.form(key="chat_form", clear_on_submit=True):
+            chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", label_visibility="collapsed")
+            send_clicked = st.form_submit_button("Send", use_container_width=True)
         
         # Handle chat input
         if send_clicked and chat_input.strip():
             # Add user message
-            st.session_state.chat_messages.append({"role": "user", "message": chat_input})
+            st.session_state.chat_messages.append({"role": "user", "message": chat_input.strip()})
             # Add bot response
-            bot_response = f"Received your question: '{chat_input}'. Let me search for that information!"
+            bot_response = f"Searching for: '{chat_input.strip()}'"
             st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
             # Trigger search based on chat input
-            st.session_state.last_search = chat_input
+            st.session_state.last_search = chat_input.strip()
             # Rerun to update display
             st.rerun()
             
