@@ -1,6 +1,459 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BingeBox - Database Mediation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            color: #333333;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .main-header {
+            font-size: 2.5rem;
+            color: #e50914;
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 2px solid #333333;
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .col-half {
+            flex: 1;
+        }
+
+        .col-full {
+            flex: 1;
+        }
+
+        .custom-box {
+            padding: 1.5rem;
+            border: 2px solid #333333;
+            background-color: #ffffff;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .filter-section {
+            min-height: 250px;
+        }
+
+        .chat-section {
+            min-height: 250px;
+            position: relative;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 150px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #fafafa;
+            border-radius: 5px;
+        }
+
+        .chat-input-container {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .chat-send-btn {
+            padding: 10px 20px;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .chat-send-btn:hover {
+            background-color: #cc0812;
+        }
+
+        .message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 8px;
+            max-width: 100%;
+        }
+
+        .user-message {
+            background-color: #e3f2fd;
+            text-align: right;
+        }
+
+        .bot-message {
+            background-color: #f5f5f5;
+            text-align: left;
+        }
+
+        .mediation-section {
+            min-height: 120px;
+        }
+
+        .wrapper-section {
+            min-height: 180px;
+        }
+
+        .global-section {
+            min-height: 200px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin: 10px 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .search-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .search-btn:hover {
+            background-color: #cc0812;
+        }
+
+        .status-info {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 5px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .results-item {
+            margin: 8px 0;
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #e50914;
+        }
+
+        .success-msg {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .row {
+                flex-direction: column;
+            }
+            
+            .main-header {
+                font-size: 2rem;
+            }
+            
+            .custom-box {
+                min-height: auto;
+            }
+        }
+    </style>
+</head>
 <body>
-<h1>Hello World!</h1>
+    <div class="container">
+        <!-- Header -->
+        <div class="main-header">🎬 BINGEBOX</div>
+
+        <!-- Top Row: Filter Area and Chat Bot -->
+        <div class="row">
+            <div class="col-half">
+                <div class="custom-box filter-section">
+                    <div class="section-title">Filter Area</div>
+                    <div class="form-group">
+                        <label for="searchTerm">Search Term</label>
+                        <input type="text" id="searchTerm" class="form-input" placeholder="Enter movie or series name...">
+                    </div>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="includeMovies" checked>
+                            <label for="includeMovies">Include Movies</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="includeSeries" checked>
+                            <label for="includeSeries">Include Series</label>
+                        </div>
+                    </div>
+                    <button class="search-btn" onclick="performSearch()">🔍 Search</button>
+                </div>
+            </div>
+            <div class="col-half">
+                <div class="custom-box chat-section">
+                    <div class="section-title">Chat Bot</div>
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot-message">🤖 Hi! I'm BingeBot. Ask me about movies, series, or database operations!</div>
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="chatInput" class="chat-input" placeholder="Ask about movies, series..." onkeypress="handleChatKeyPress(event)">
+                        <button class="chat-send-btn" onclick="sendChatMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mediation Section -->
+        <div class="row">
+            <div class="col-full">
+                <div class="custom-box mediation-section">
+                    <div class="section-title">Mediation Where The Query From Chatbot Or Filter Will Show</div>
+                    <div id="mediationContent">
+                        <p><em>Waiting for query from Filter Area or Chat Bot...</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wrapper Row -->
+        <div class="row">
+            <div class="col-half">
+                <div class="custom-box wrapper-section">
+                    <div class="section-title">Wrapper 1 Query Will Show Here</div>
+                    <div id="wrapper1Content">
+                        <p><em>No query received yet</em></p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-half">
+                <div class="custom-box wrapper-section">
+                    <div class="section-title">Wrapper 2 Query Will Show Here</div>
+                    <div id="wrapper2Content">
+                        <p><em>No query received yet</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Global Schema View -->
+        <div class="row">
+            <div class="col-full">
+                <div class="custom-box global-section">
+                    <div class="section-title">Global Schema View After Query Result Comes From Both Wrappers</div>
+                    <div id="globalSchemaContent">
+                        <p><em>Global schema waiting for results from wrappers...</em></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSearch = '';
+        let chatMessages = [];
+
+        // Initialize chat messages
+        chatMessages.push({
+            role: 'bot',
+            message: "Hi! I'm BingeBot. Ask me about movies, series, or database operations!"
+        });
+
+        function performSearch() {
+            const searchTerm = document.getElementById('searchTerm').value.trim();
+            if (!searchTerm) {
+                alert('Please enter a search term');
+                return;
+            }
+
+            currentSearch = searchTerm;
+            updateMediation(`🔄 Processing query: '${searchTerm}'`);
+            updateWrappers();
+            updateGlobalSchema();
+        }
+
+        function sendChatMessage() {
+            const chatInput = document.getElementById('chatInput');
+            const message = chatInput.value.trim();
+            
+            if (!message) return;
+
+            // Add user message
+            addChatMessage('user', message);
+            
+            // Add bot response
+            const botResponse = `🔍 Searching for: '${message}' - Sending query to mediation layer...`;
+            addChatMessage('bot', botResponse);
+            
+            // Clear input
+            chatInput.value = '';
+            
+            // Process the search
+            currentSearch = message;
+            updateMediation(`🔄 Processing query: '${message}'`);
+            updateWrappers();
+            updateGlobalSchema();
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        function addChatMessage(role, message) {
+            chatMessages.push({ role, message });
+            
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role === 'user' ? 'user-message' : 'bot-message'}`;
+            messageDiv.innerHTML = role === 'user' ? `👤 ${message}` : `🤖 ${message}`;
+            
+            chatMessagesDiv.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        function updateMediation(query) {
+            document.getElementById('mediationContent').innerHTML = `
+                <div class="status-info">${query}</div>
+                <p><strong>Mediation layer is coordinating between Filter and Chat inputs, sending queries to both wrappers...</strong></p>
+            `;
+        }
+
+        function updateWrappers() {
+            const includeMovies = document.getElementById('includeMovies').checked;
+            const includeSeries = document.getElementById('includeSeries').checked;
+
+            // Update Wrapper 1 (Movies)
+            let wrapper1Content = '<p><strong>Movies Database Results:</strong></p>';
+            if (includeMovies && currentSearch) {
+                wrapper1Content += `
+                    <div class="results-item">🎬 <strong>Movie matching '${currentSearch}'</strong> (2023) - Rating: 8.5</div>
+                    <div class="results-item">🎬 <strong>Another '${currentSearch}' Film</strong> (2022) - Rating: 7.8</div>
+                `;
+            } else {
+                wrapper1Content += '<p><em>Movies not included in search</em></p>';
+            }
+            document.getElementById('wrapper1Content').innerHTML = wrapper1Content;
+
+            // Update Wrapper 2 (Series)
+            let wrapper2Content = '<p><strong>TV Series Database Results:</strong></p>';
+            if (includeSeries && currentSearch) {
+                wrapper2Content += `
+                    <div class="results-item">📺 <strong>Series about '${currentSearch}'</strong> (4 seasons) - Rating: 9.1</div>
+                    <div class="results-item">📺 <strong>'${currentSearch}' Chronicles</strong> (2 seasons) - Rating: 8.7</div>
+                `;
+            } else {
+                wrapper2Content += '<p><em>Series not included in search</em></p>';
+            }
+            document.getElementById('wrapper2Content').innerHTML = wrapper2Content;
+        }
+
+        function updateGlobalSchema() {
+            const includeMovies = document.getElementById('includeMovies').checked;
+            const includeSeries = document.getElementById('includeSeries').checked;
+
+            if (!currentSearch) {
+                document.getElementById('globalSchemaContent').innerHTML = 
+                    '<p><em>Global schema waiting for results from wrappers...</em></p>';
+                return;
+            }
+
+            let globalContent = '<p><strong>Unified Results from Both Wrappers:</strong></p>';
+
+            if (includeMovies) {
+                globalContent += `
+                    <p><strong>Movies:</strong></p>
+                    <div class="results-item">🎬 Movie matching '${currentSearch}' (2023) - Rating: 8.5</div>
+                    <div class="results-item">🎬 Another '${currentSearch}' Film (2022) - Rating: 7.8</div>
+                `;
+            }
+
+            if (includeSeries) {
+                globalContent += `
+                    <p><strong>TV Series:</strong></p>
+                    <div class="results-item">📺 Series about '${currentSearch}' (4 seasons) - Rating: 9.1</div>
+                    <div class="results-item">📺 '${currentSearch}' Chronicles (2 seasons) - Rating: 8.7</div>
+                `;
+            }
+
+            globalContent += '<div class="success-msg">✅ Global schema successfully merged results from both database wrappers</div>';
+            
+            document.getElementById('globalSchemaContent').innerHTML = globalContent;
+        }
+
+        // Auto-focus on search input when page loads
+        window.addEventListener('load', function() {
+            document.getElementById('searchTerm').focus();
+        });
+    </script>
 </body>
 </html>
