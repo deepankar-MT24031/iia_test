@@ -8,13 +8,13 @@ st.set_page_config(
     layout="wide"
 )
 
-# CSS for light theme
+# CSS for light theme (no dark shades)
 st.markdown("""
 <style>
 .stApp {background: #ffffff; color: #333333;}
 .main-header {font-size: 3rem; color: #e50914; text-align: center; margin-bottom: 1rem;}
 .filter-box, .chatbot-box, .mediation-box, .wrapper-box, .global-schema-box {
-    padding: 1rem; border-radius: 10px; margin: 0.5rem 0; background-color: #f0f2f6; color: #333333;
+    padding: 1rem; border-radius: 10px; margin: 0.5rem 0; background-color: #f9f9f9; color: #333333;
     height: 350px; overflow-y: auto;
     border: 1px solid #e0e0e0;
 }
@@ -45,17 +45,25 @@ with top_col1:
 
 with top_col2:
     st.markdown('<div class="chatbot-box">### 🤖 Chat Bot</div>', unsafe_allow_html=True)
+    
+    # Create a placeholder for chat messages
+    chat_history_container = st.empty()
+    
+    # Display initial chat messages in the placeholder
+    with chat_history_container.container():
+        for msg in st.session_state.chat_messages[-5:]:
+            if msg["role"] == "bot":
+                st.markdown(f'🤖 {msg["message"]}')
+            else:
+                st.markdown(f'👤 {msg["message"]}')
+
     chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", key="chat_input")
+    
     if st.button("Send", key="send_chat") and chat_input:
         st.session_state.chat_messages.append({"role": "user", "message": chat_input})
         bot_response = f"Received your question: {chat_input}"
         st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
         st.rerun()
-    for msg in st.session_state.chat_messages[-5:]:
-        if msg["role"] == "bot":
-            st.markdown(f'🤖 {msg["message"]}')
-        else:
-            st.markdown(f'👤 {msg["message"]}')
 
 # MIDDLE ROW: MEDIATION (Query Results)
 st.markdown('<div class="mediation-box">### 🔄 Mediation: Queries from Filter or Chatbot will appear here</div>', unsafe_allow_html=True)
