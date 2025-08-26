@@ -17,9 +17,15 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS matching your sketch layout
+# Custom CSS for dark theme with proper text containment
 st.markdown("""
 <style>
+    /* Dark theme for main app */
+    .stApp {
+        background: #0e1117;
+        color: #ffffff;
+    }
+    
     .main-header {
         font-size: 3rem;
         color: #e50914;
@@ -27,87 +33,153 @@ st.markdown("""
         margin-bottom: 1rem;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
+    
+    /* Container styling to contain all content */
+    .filter-container, .mediation-container, .chatbot-container, .schema-container {
+        padding: 0;
+        margin: 0;
+    }
+    
     .filter-box {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 1.5rem;
         border-radius: 15px;
-        color: white;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        height: 500px;
+        color: white !important;
+        margin: 0.5rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        height: 600px;
         overflow-y: auto;
     }
+    
     .llm-chatbot {
         background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
         padding: 1.5rem;
         border-radius: 15px;
-        color: white;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        height: 500px;
+        color: white !important;
+        margin: 0.5rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        height: 600px;
         overflow-y: auto;
     }
+    
     .mediation-query {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
         padding: 1.5rem;
         border-radius: 15px;
-        color: white;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        height: 250px;
-    }
-    .global-schema {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        padding: 1.5rem;
-        border-radius: 15px;
-        color: #333;
-        margin: 1rem 0;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        height: 400px;
+        color: white !important;
+        margin: 0.5rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        height: 280px;
         overflow-y: auto;
     }
+    
+    .global-schema {
+        background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        color: white !important;
+        margin: 0.5rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        height: 500px;
+        overflow-y: auto;
+    }
+    
     .movie-card {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
         padding: 1rem;
         border-radius: 10px;
         margin: 0.5rem 0;
-        color: white;
+        color: white !important;
     }
+    
     .series-card {
         background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
         padding: 1rem;
         border-radius: 10px;
         margin: 0.5rem 0;
-        color: white;
+        color: white !important;
     }
+    
     .chat-message {
         background: rgba(255,255,255,0.1);
         padding: 0.8rem;
         border-radius: 10px;
         margin: 0.5rem 0;
         border-left: 4px solid rgba(255,255,255,0.3);
+        color: white !important;
     }
+    
     .user-message {
         background: rgba(255,255,255,0.2);
         text-align: right;
         border-left: none;
         border-right: 4px solid rgba(255,255,255,0.3);
+        color: white !important;
     }
-    .stSelectbox > div > div {
-        background-color: rgba(255,255,255,0.1);
-        color: white;
+    
+    /* Input styling for dark theme */
+    .stSelectbox > div > div > div {
+        background-color: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
     }
+    
     .stTextInput > div > div > input {
-        background-color: rgba(255,255,255,0.1);
-        color: white;
+        background-color: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
     }
-    .stMultiSelect > div > div {
-        background-color: rgba(255,255,255,0.1);
-        color: white;
+    
+    .stMultiSelect > div > div > div {
+        background-color: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
     }
+    
     .stNumberInput > div > div > input {
-        background-color: rgba(255,255,255,0.1);
-        color: white;
+        background-color: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
+    }
+    
+    .stCheckbox > label {
+        color: white !important;
+    }
+    
+    .stButton > button {
+        background: rgba(255,255,255,0.1) !important;
+        color: white !important;
+        border: 1px solid rgba(255,255,255,0.3) !important;
+    }
+    
+    .stButton > button:hover {
+        background: rgba(255,255,255,0.2) !important;
+        color: white !important;
+    }
+    
+    /* Hide Streamlit default styling that conflicts */
+    .stSelectbox label, .stTextInput label, .stMultiSelect label, .stNumberInput label {
+        color: white !important;
+        font-weight: 600 !important;
+    }
+    
+    /* Metric styling */
+    .stMetric {
+        background: rgba(255,255,255,0.1);
+        padding: 0.5rem;
+        border-radius: 8px;
+        margin: 0.2rem 0;
+    }
+    
+    .stMetric label {
+        color: white !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .stMetric div[data-testid="metric-value"] {
+        color: white !important;
+        font-size: 1.5rem !important;
+        font-weight: bold !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -157,8 +229,9 @@ top_col1, top_col2, top_col3 = st.columns([1, 2, 1])
 
 # FILTER BOX (Left top)
 with top_col1:
-    st.markdown('<div class="filter-box">', unsafe_allow_html=True)
-    st.markdown("### 🔍 Filter Box")
+    with st.container():
+        st.markdown('<div class="filter-box">', unsafe_allow_html=True)
+        st.markdown("### 🔍 Filter Box")
     
     # Basic search filters
     search_term = st.text_input(
@@ -204,13 +277,14 @@ with top_col1:
         ["Netflix", "HBO", "Amazon Prime", "Disney+", "Hulu", "NBC", "CBS", "Fox", "AMC", "BBC"],
         key="filter_networks"
     )
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # MEDIATION QUERY (Center top)
 with top_col2:
-    st.markdown('<div class="mediation-query">', unsafe_allow_html=True)
-    st.markdown("### 🔄 Mediation Query")
+    with st.container():
+        st.markdown('<div class="mediation-query">', unsafe_allow_html=True)
+        st.markdown("### 🔄 Mediation Query")
     
     # Query tabs
     query_tab = st.selectbox(
@@ -248,15 +322,16 @@ with top_col2:
             st.metric("📺 Series", f"{series_stats.get('total_series', 0):,}")
         with stat_col3:
             st.metric("🔗 Connected", f"{connected_dbs}/2")
-    except:
-        st.info("Stats unavailable")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+        except:
+            st.info("Stats unavailable")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # LLM CHATBOT (Right top)
 with top_col3:
-    st.markdown('<div class="llm-chatbot">', unsafe_allow_html=True)
-    st.markdown("### 🤖 LLM Chatbot")
+    with st.container():
+        st.markdown('<div class="llm-chatbot">', unsafe_allow_html=True)
+        st.markdown("### 🤖 LLM Chatbot")
     
     # Chat messages display
     chat_container = st.container()
@@ -293,11 +368,12 @@ with top_col3:
         st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
         st.rerun()
     
-    st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 # GLOBAL SCHEMA VIEW RESULT (Bottom full width)
-st.markdown('<div class="global-schema">', unsafe_allow_html=True)
-st.markdown("### 🌐 Global Schema View Result")
+with st.container():
+    st.markdown('<div class="global-schema">', unsafe_allow_html=True)
+    st.markdown("### 🌐 Global Schema View Result")
 
 # Execute search logic
 if execute_search or query_input:
@@ -416,7 +492,7 @@ elif health_check:
 else:
     st.info("🔍 Use the Mediation Query section above to search, get statistics, or perform health checks")
 
-st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
