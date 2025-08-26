@@ -11,29 +11,60 @@ from database_wrapper import db_mediator, initialize_remote_databases, cached_se
 
 # Set page config
 st.set_page_config(
-    page_title="Movies & Series Database",
+    page_title="BingeBox - Database Mediation",
     page_icon="🎬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-# Custom CSS
+# Custom CSS matching your sketch layout
 st.markdown("""
 <style>
     .main-header {
         font-size: 3rem;
         color: #e50914;
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1rem;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
     }
-    .database-card {
+    .filter-box {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         padding: 1.5rem;
         border-radius: 15px;
         color: white;
         margin: 1rem 0;
         box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        height: 500px;
+        overflow-y: auto;
+    }
+    .llm-chatbot {
+        background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        color: white;
+        margin: 1rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        height: 500px;
+        overflow-y: auto;
+    }
+    .mediation-query {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        color: white;
+        margin: 1rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        height: 250px;
+    }
+    .global-schema {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        padding: 1.5rem;
+        border-radius: 15px;
+        color: #333;
+        margin: 1rem 0;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        height: 400px;
+        overflow-y: auto;
     }
     .movie-card {
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
@@ -49,20 +80,34 @@ st.markdown("""
         margin: 0.5rem 0;
         color: white;
     }
-    .search-box {
-        background-color: #f8f9fa;
-        padding: 2rem;
-        border-radius: 15px;
-        border: 2px solid #e9ecef;
-        margin: 1rem 0;
+    .chat-message {
+        background: rgba(255,255,255,0.1);
+        padding: 0.8rem;
+        border-radius: 10px;
+        margin: 0.5rem 0;
+        border-left: 4px solid rgba(255,255,255,0.3);
     }
-    .status-connected {
-        color: #28a745;
-        font-weight: bold;
+    .user-message {
+        background: rgba(255,255,255,0.2);
+        text-align: right;
+        border-left: none;
+        border-right: 4px solid rgba(255,255,255,0.3);
     }
-    .status-failed {
-        color: #dc3545;
-        font-weight: bold;
+    .stSelectbox > div > div {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+    }
+    .stTextInput > div > div > input {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+    }
+    .stMultiSelect > div > div {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+    }
+    .stNumberInput > div > div > input {
+        background-color: rgba(255,255,255,0.1);
+        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -71,17 +116,29 @@ st.markdown("""
 @st.cache_resource
 def init_databases():
     """Initialize database mediator"""
-    mediator = initialize_remote_databases()
-    # Run async initialization
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    connected_count = loop.run_until_complete(mediator.initialize_connections())
-    loop.close()
-    return mediator, connected_count
+    try:
+        mediator = initialize_remote_databases()
+        # Run async initialization
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        connected_count = loop.run_until_complete(mediator.initialize_connections())
+        loop.close()
+        return mediator, connected_count
+    except Exception as e:
+        return None, 0
+
+# Initialize session state for chat
+if "chat_messages" not in st.session_state:
+    st.session_state.chat_messages = [
+        {"role": "bot", "message": "Hi! I'm BingeBot. Ask me about movies, series, or database operations!"}
+    ]
+
+if "search_results" not in st.session_state:
+    st.session_state.search_results = None
 
 # Title and Header
-st.markdown('<h1 class="main-header">🎬 Movies & Series Database</h1>', unsafe_allow_html=True)
-st.markdown('<p style="text-align: center; font-size: 1.2rem; color: #666;">Distributed database search across Tailscale network</p>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">🎬 BingeBox</h1>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; font-size: 1.2rem; color: #666;">C (Mediation) - Intelligent Database Mediation System</p>', unsafe_allow_html=True)
 
 # Initialize databases
 try:
@@ -94,355 +151,279 @@ except Exception as e:
     st.error(f"❌ Database initialization failed: {str(e)}")
     mediator, connected_dbs = None, 0
 
-# Sidebar
-with st.sidebar:
-    st.image("https://via.placeholder.com/300x150/e50914/white?text=🎬+Database", width=300)
-    st.markdown("### 🔍 Search Options")
+# Main layout following your sketch
+# Top row: Filter Box, Mediation Query, LLM Chatbot
+top_col1, top_col2, top_col3 = st.columns([1, 2, 1])
+
+# FILTER BOX (Left top)
+with top_col1:
+    st.markdown('<div class="filter-box">', unsafe_allow_html=True)
+    st.markdown("### 🔍 Filter Box")
     
-    # Search configuration
+    # Basic search filters
     search_term = st.text_input(
         "Search Term",
         placeholder="Enter movie or series name...",
-        help="Search across both Movies and Series databases"
+        key="filter_search"
     )
     
-    search_type = st.selectbox(
+    search_field = st.selectbox(
         "Search Field",
-        ["title", "genre", "director", "cast", "network"],
-        help="Field to search in"
+        ["title", "genre", "director", "cast", "network", "year", "rating"],
+        key="filter_field"
     )
     
-    search_limit = st.slider(
-        "Results Limit",
-        min_value=10,
-        max_value=100,
-        value=25,
-        help="Maximum results per database"
+    # Database selection
+    st.markdown("**Database Sources:**")
+    include_movies = st.checkbox("🎬 Include Movies", value=True, key="filter_movies")
+    include_series = st.checkbox("📺 Include Series", value=True, key="filter_series")
+    
+    # Genre filters
+    genre_options = st.multiselect(
+        "Genres",
+        ["Action", "Comedy", "Drama", "Horror", "Sci-Fi", "Romance", "Thriller", "Crime", "Fantasy", "Documentary"],
+        key="filter_genres"
     )
     
-    st.markdown("---")
+    # Year range
+    col_year1, col_year2 = st.columns(2)
+    with col_year1:
+        year_from = st.number_input("Year From", min_value=1900, max_value=2024, value=2000, key="filter_year_from")
+    with col_year2:
+        year_to = st.number_input("Year To", min_value=1900, max_value=2024, value=2024, key="filter_year_to")
     
-    # Database filters
-    st.markdown("### 📊 Database Filters")
-    include_movies = st.checkbox("Include Movies", value=True)
-    include_series = st.checkbox("Include Series", value=True)
+    # Rating filter
+    min_rating = st.number_input("Minimum Rating", min_value=0.0, max_value=10.0, value=0.0, step=0.1, key="filter_rating")
     
-    min_rating = st.slider(
-        "Minimum Rating",
-        min_value=0.0,
-        max_value=10.0,
-        value=0.0,
-        step=0.1
+    # Results limit
+    results_limit = st.number_input("Results Limit", min_value=5, max_value=100, value=25, key="filter_limit")
+    
+    # Network filter for series
+    network_options = st.multiselect(
+        "Networks",
+        ["Netflix", "HBO", "Amazon Prime", "Disney+", "Hulu", "NBC", "CBS", "Fox", "AMC", "BBC"],
+        key="filter_networks"
     )
     
-    # Refresh button
-    if st.button("🔄 Refresh Data", type="primary"):
-        st.cache_data.clear()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# MEDIATION QUERY (Center top)
+with top_col2:
+    st.markdown('<div class="mediation-query">', unsafe_allow_html=True)
+    st.markdown("### 🔄 Mediation Query")
+    
+    # Query tabs
+    query_tab = st.selectbox(
+        "Query Type",
+        ["Search", "Statistics", "Health Check"],
+        key="query_tab"
+    )
+    
+    # Query input
+    query_input = st.text_input(
+        "Enter Query",
+        placeholder="Search across distributed databases...",
+        key="mediation_query"
+    )
+    
+    # Execute button
+    col_btn1, col_btn2, col_btn3 = st.columns(3)
+    with col_btn1:
+        execute_search = st.button("🚀 Execute Search", type="primary")
+    with col_btn2:
+        get_stats = st.button("📊 Get Stats")
+    with col_btn3:
+        health_check = st.button("🏥 Health Check")
+    
+    # Quick stats display
+    try:
+        stats = cached_stats() if mediator else {}
+        movies_stats = stats.get("movies", [{}])[0] if stats.get("movies") else {}
+        series_stats = stats.get("series", [{}])[0] if stats.get("series") else {}
+        
+        stat_col1, stat_col2, stat_col3 = st.columns(3)
+        with stat_col1:
+            st.metric("🎬 Movies", f"{movies_stats.get('total_movies', 0):,}")
+        with stat_col2:
+            st.metric("📺 Series", f"{series_stats.get('total_series', 0):,}")
+        with stat_col3:
+            st.metric("🔗 Connected", f"{connected_dbs}/2")
+    except:
+        st.info("Stats unavailable")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# LLM CHATBOT (Right top)
+with top_col3:
+    st.markdown('<div class="llm-chatbot">', unsafe_allow_html=True)
+    st.markdown("### 🤖 LLM Chatbot")
+    
+    # Chat messages display
+    chat_container = st.container()
+    with chat_container:
+        for msg in st.session_state.chat_messages[-10:]:  # Show last 10 messages
+            if msg["role"] == "bot":
+                st.markdown(f'<div class="chat-message">🤖 <strong>BingeBot:</strong> {msg["message"]}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown(f'<div class="chat-message user-message">👤 <strong>You:</strong> {msg["message"]}</div>', unsafe_allow_html=True)
+    
+    # Chat input
+    chat_input = st.text_input(
+        "Ask BingeBot",
+        placeholder="Ask about movies, series, or database...",
+        key="chat_input"
+    )
+    
+    if st.button("💬 Send", key="send_chat") and chat_input:
+        # Add user message
+        st.session_state.chat_messages.append({"role": "user", "message": chat_input})
+        
+        # Generate bot response
+        if "movie" in chat_input.lower():
+            bot_response = f"I can help you find movies! Try searching for specific titles, genres, or directors using the search functionality."
+        elif "series" in chat_input.lower() or "show" in chat_input.lower():
+            bot_response = f"Looking for TV series? Use the filters to narrow down by network, genre, or rating."
+        elif "database" in chat_input.lower():
+            bot_response = f"Our system connects to {connected_dbs} databases via Tailscale. Movies are stored in PostgreSQL, Series in MySQL."
+        elif "search" in chat_input.lower():
+            bot_response = "You can search by title, genre, director, cast, network, year, or rating. Use the filters on the left!"
+        else:
+            bot_response = "I can help with movie/series searches, database info, or recommendations. What would you like to know?"
+        
+        st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
         st.rerun()
-
-# Main content tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🔍 Search", "📊 Statistics", "🎬 Movies", "📺 Series", "⚙️ System"])
-
-with tab1:
-    st.subheader("🔍 Global Search")
     
-    # Search interface
-    with st.container():
-        st.markdown('<div class="search-box">', unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns([3, 1, 1])
-        
-        with col1:
-            quick_search = st.text_input(
-                "Quick Search",
-                value=search_term,
-                placeholder="Search movies and series...",
-                label_visibility="collapsed"
-            )
-        
-        with col2:
-            search_btn = st.button("🔍 Search", type="primary")
-        
-        with col3:
-            clear_btn = st.button("🗑️ Clear")
-            
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# GLOBAL SCHEMA VIEW RESULT (Bottom full width)
+st.markdown('<div class="global-schema">', unsafe_allow_html=True)
+st.markdown("### 🌐 Global Schema View Result")
+
+# Execute search logic
+if execute_search or query_input:
+    search_query = query_input or search_term
     
-    # Perform search
-    if (search_btn and quick_search) or search_term:
-        search_query = quick_search or search_term
-        
-        with st.spinner(f"Searching for '{search_query}' across remote databases..."):
+    if search_query:
+        with st.spinner(f"Searching for '{search_query}' across distributed databases..."):
             try:
                 # Execute search across databases
-                results = cached_search(search_query, search_type)
+                results = cached_search(search_query, search_field) if mediator else {}
+                st.session_state.search_results = results
                 
                 if results:
                     # Display results summary
-                    total_results = sum(len(result_list) for result_list in results.values())
+                    total_results = sum(len(result_list) for result_list in results.values() if result_list)
                     st.info(f"🎯 Found {total_results} results across {len(results)} databases")
                     
                     # Create columns for results
-                    col1, col2 = st.columns(2)
+                    result_col1, result_col2 = st.columns(2)
                     
                     # Movies results
-                    if "movies" in results and include_movies:
-                        with col1:
-                            st.markdown("### 🎬 Movies")
+                    if "movies" in results and include_movies and results["movies"]:
+                        with result_col1:
+                            st.markdown("#### 🎬 Movies Database Results")
                             movies_data = results["movies"]
                             
-                            if movies_data:
-                                for movie in movies_data[:search_limit]:
-                                    if movie.get('rating', 0) >= min_rating:
-                                        st.markdown(f"""
-                                        <div class="movie-card">
-                                            <h4>🎬 {movie.get('title', 'Unknown')}</h4>
-                                            <p><strong>Year:</strong> {movie.get('year', 'N/A')}</p>
-                                            <p><strong>Genre:</strong> {movie.get('genre', 'N/A')}</p>
-                                            <p><strong>Rating:</strong> ⭐ {movie.get('rating', 'N/A')}/10</p>
-                                            <p><strong>Director:</strong> {movie.get('director', 'N/A')}</p>
-                                        </div>
-                                        """, unsafe_allow_html=True)
-                            else:
-                                st.info("No movies found matching your criteria")
+                            for movie in movies_data[:int(results_limit)]:
+                                if (not genre_options or any(g.lower() in movie.get('genre', '').lower() for g in genre_options)) and \
+                                   (movie.get('rating', 0) >= min_rating) and \
+                                   (year_from <= movie.get('year', 0) <= year_to):
+                                    st.markdown(f"""
+                                    <div class="movie-card">
+                                        <h4>🎬 {movie.get('title', 'Unknown')}</h4>
+                                        <p><strong>Year:</strong> {movie.get('year', 'N/A')}</p>
+                                        <p><strong>Genre:</strong> {movie.get('genre', 'N/A')}</p>
+                                        <p><strong>Rating:</strong> ⭐ {movie.get('rating', 'N/A')}/10</p>
+                                        <p><strong>Director:</strong> {movie.get('director', 'N/A')}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                     
                     # Series results  
-                    if "series" in results and include_series:
-                        with col2:
-                            st.markdown("### 📺 Series")
+                    if "series" in results and include_series and results["series"]:
+                        with result_col2:
+                            st.markdown("#### 📺 Series Database Results")
                             series_data = results["series"]
                             
-                            if series_data:
-                                for series in series_data[:search_limit]:
-                                    if series.get('rating', 0) >= min_rating:
-                                        st.markdown(f"""
-                                        <div class="series-card">
-                                            <h4>📺 {series.get('title', 'Unknown')}</h4>
-                                            <p><strong>Seasons:</strong> {series.get('seasons', 'N/A')}</p>
-                                            <p><strong>Genre:</strong> {series.get('genre', 'N/A')}</p>
-                                            <p><strong>Rating:</strong> ⭐ {series.get('rating', 'N/A')}/10</p>
-                                            <p><strong>Network:</strong> {series.get('network', 'N/A')}</p>
-                                        </div>
-                                        """, unsafe_allow_html=True)
-                            else:
-                                st.info("No series found matching your criteria")
+                            for series in series_data[:int(results_limit)]:
+                                if (not genre_options or any(g.lower() in series.get('genre', '').lower() for g in genre_options)) and \
+                                   (not network_options or series.get('network', '') in network_options) and \
+                                   (series.get('rating', 0) >= min_rating):
+                                    st.markdown(f"""
+                                    <div class="series-card">
+                                        <h4>📺 {series.get('title', 'Unknown')}</h4>
+                                        <p><strong>Seasons:</strong> {series.get('seasons', 'N/A')}</p>
+                                        <p><strong>Genre:</strong> {series.get('genre', 'N/A')}</p>
+                                        <p><strong>Rating:</strong> ⭐ {series.get('rating', 'N/A')}/10</p>
+                                        <p><strong>Network:</strong> {series.get('network', 'N/A')}</p>
+                                    </div>
+                                    """, unsafe_allow_html=True)
                 else:
                     st.warning("No results found. Check database connections.")
                     
             except Exception as e:
                 st.error(f"❌ Search failed: {str(e)}")
-    
-    elif clear_btn:
-        st.rerun()
-        
     else:
-        st.info("👆 Enter a search term above to query both databases simultaneously")
+        st.info("👆 Enter a search term in the Mediation Query or Filter Box to search both databases")
 
-with tab2:
-    st.subheader("📊 Database Statistics")
-    
+# Show statistics
+elif get_stats:
     try:
-        stats = cached_stats()
-        
-        if stats:
-            # Overview metrics
-            col1, col2, col3, col4 = st.columns(4)
+        with st.spinner("Fetching database statistics..."):
+            stats = cached_stats() if mediator else {}
             
-            movies_stats = stats.get("movies", [{}])[0] if stats.get("movies") else {}
-            series_stats = stats.get("series", [{}])[0] if stats.get("series") else {}
-            
-            with col1:
-                total_movies = movies_stats.get('total_movies', 0)
-                st.metric("🎬 Total Movies", f"{total_movies:,}")
-            
-            with col2:
-                total_series = series_stats.get('total_series', 0)
-                st.metric("📺 Total Series", f"{total_series:,}")
-            
-            with col3:
-                avg_movie_rating = movies_stats.get('avg_rating', 0)
-                st.metric("⭐ Avg Movie Rating", f"{avg_movie_rating:.1f}/10" if avg_movie_rating else "N/A")
-            
-            with col4:
-                avg_series_rating = series_stats.get('avg_rating', 0)
-                st.metric("⭐ Avg Series Rating", f"{avg_series_rating:.1f}/10" if avg_series_rating else "N/A")
-            
-            # Charts
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                # Database comparison chart
-                if total_movies or total_series:
-                    db_comparison = pd.DataFrame({
-                        'Database': ['Movies', 'Series'],
-                        'Count': [total_movies, total_series],
-                        'Type': ['🎬 Movies', '📺 Series']
-                    })
-                    
-                    fig_bar = px.bar(
-                        db_comparison,
-                        x='Database',
-                        y='Count',
-                        color='Type',
-                        title="Content Distribution",
-                        color_discrete_map={'🎬 Movies': '#ff6b6b', '📺 Series': '#4ecdc4'}
-                    )
-                    st.plotly_chart(fig_bar, use_container_width=True)
-            
-            with col2:
-                # Rating comparison
-                if avg_movie_rating or avg_series_rating:
-                    rating_data = pd.DataFrame({
-                        'Category': ['Movies', 'Series'],
-                        'Average Rating': [avg_movie_rating or 0, avg_series_rating or 0]
-                    })
-                    
-                    fig_rating = px.bar(
-                        rating_data,
-                        x='Category',
-                        y='Average Rating',
-                        title="Average Ratings Comparison",
-                        color='Average Rating',
-                        color_continuous_scale='viridis'
-                    )
-                    fig_rating.update_layout(yaxis_range=[0, 10])
-                    st.plotly_chart(fig_rating, use_container_width=True)
-        
-        else:
-            st.warning("Unable to fetch database statistics")
-            
+            if stats:
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.markdown("#### 🎬 Movies Database Stats")
+                    movies_stats = stats.get("movies", [{}])[0] if stats.get("movies") else {}
+                    if movies_stats:
+                        for key, value in movies_stats.items():
+                            st.metric(key.replace('_', ' ').title(), value)
+                
+                with col2:
+                    st.markdown("#### 📺 Series Database Stats")
+                    series_stats = stats.get("series", [{}])[0] if stats.get("series") else {}
+                    if series_stats:
+                        for key, value in series_stats.items():
+                            st.metric(key.replace('_', ' ').title(), value)
+            else:
+                st.warning("Unable to fetch database statistics")
     except Exception as e:
         st.error(f"❌ Failed to load statistics: {str(e)}")
 
-with tab3:
-    st.subheader("🎬 Movies Database")
-    
-    # Movies-specific search and display
-    if st.button("🔍 Browse Latest Movies"):
-        with st.spinner("Fetching movies from remote database..."):
-            try:
-                results = cached_search("", "title")  # Get all movies
-                movies_data = results.get("movies", [])
-                
-                if movies_data:
-                    # Create DataFrame for better display
-                    movies_df = pd.DataFrame(movies_data)
-                    
-                    # Display as interactive table
-                    st.dataframe(
-                        movies_df,
-                        use_container_width=True,
-                        column_config={
-                            "title": st.column_config.TextColumn("Title", width="large"),
-                            "rating": st.column_config.NumberColumn("Rating", format="%.1f"),
-                            "year": st.column_config.NumberColumn("Year"),
-                            "genre": st.column_config.TextColumn("Genre"),
-                        }
-                    )
-                else:
-                    st.info("No movies data available")
-                    
-            except Exception as e:
-                st.error(f"❌ Failed to fetch movies: {str(e)}")
+# Health check
+elif health_check:
+    try:
+        with st.spinner("Performing health check..."):
+            health_status = get_health_status() if mediator else {}
+            
+            if health_status:
+                for db_name, status in health_status.items():
+                    status_color = "🟢" if status.get('status') == 'connected' else "🔴"
+                    st.markdown(f"""
+                    **{status_color} {db_name.title()} Database**
+                    - Status: {status.get('status', 'Unknown').upper()}
+                    - Host: {status.get('host', 'N/A')}
+                    - Response Time: {status.get('response_time', 'N/A')}
+                    - Version: {status.get('version', 'N/A')}
+                    """)
+            else:
+                st.warning("Health check unavailable")
+    except Exception as e:
+        st.error(f"❌ Health check failed: {str(e)}")
 
-with tab4:
-    st.subheader("📺 Series Database")
-    
-    # Series-specific search and display
-    if st.button("🔍 Browse Latest Series"):
-        with st.spinner("Fetching series from remote database..."):
-            try:
-                results = cached_search("", "title")  # Get all series
-                series_data = results.get("series", [])
-                
-                if series_data:
-                    # Create DataFrame for better display
-                    series_df = pd.DataFrame(series_data)
-                    
-                    # Display as interactive table
-                    st.dataframe(
-                        series_df,
-                        use_container_width=True,
-                        column_config={
-                            "title": st.column_config.TextColumn("Title", width="large"),
-                            "rating": st.column_config.NumberColumn("Rating", format="%.1f"),
-                            "seasons": st.column_config.NumberColumn("Seasons"),
-                            "genre": st.column_config.TextColumn("Genre"),
-                            "network": st.column_config.TextColumn("Network"),
-                        }
-                    )
-                else:
-                    st.info("No series data available")
-                    
-            except Exception as e:
-                st.error(f"❌ Failed to fetch series: {str(e)}")
+else:
+    st.info("🔍 Use the Mediation Query section above to search, get statistics, or perform health checks")
 
-with tab5:
-    st.subheader("⚙️ System Status")
-    
-    # Database health check
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.markdown("### 🏥 Database Health Check")
-        
-        if st.button("🔄 Run Health Check"):
-            with st.spinner("Checking database connections..."):
-                try:
-                    health_status = get_health_status()
-                    
-                    for db_name, status in health_status.items():
-                        status_class = "status-connected" if status.get('status') == 'connected' else "status-failed"
-                        
-                        st.markdown(f"""
-                        <div class="database-card">
-                            <h4>{db_name.title()} Database</h4>
-                            <p><strong>Status:</strong> <span class="{status_class}">{status.get('status', 'Unknown').upper()}</span></p>
-                            <p><strong>Host:</strong> {status.get('host', 'N/A')}</p>
-                            <p><strong>Response Time:</strong> {status.get('response_time', 'N/A')}</p>
-                            <p><strong>Version:</strong> {status.get('version', 'N/A')}</p>
-                            {f"<p><strong>Error:</strong> {status.get('error', 'N/A')}</p>" if status.get('error') else ""}
-                        </div>
-                        """, unsafe_allow_html=True)
-                        
-                except Exception as e:
-                    st.error(f"❌ Health check failed: {str(e)}")
-    
-    with col2:
-        st.markdown("### 🔧 System Info")
-        st.info(f"**Connected DBs:** {connected_dbs}/2")
-        st.info(f"**Cache Status:** {'Active' if st.cache_data else 'Inactive'}")
-        st.info(f"**Last Updated:** {datetime.now().strftime('%H:%M:%S')}")
-        
-        # Clear cache button
-        if st.button("🗑️ Clear Cache"):
-            st.cache_data.clear()
-            st.success("Cache cleared successfully!")
-    
-    # Configuration display
-    st.markdown("### ⚙️ Database Configuration")
-    
-    config_info = {
-        "Movies DB": {
-            "Type": "PostgreSQL",
-            "Network": "Tailscale",
-            "Status": "Remote"
-        },
-        "Series DB": {
-            "Type": "MySQL", 
-            "Network": "Tailscale",
-            "Status": "Remote"
-        }
-    }
-    
-    st.json(config_info)
+st.markdown('</div>', unsafe_allow_html=True)
 
 # Footer
 st.markdown("---")
 st.markdown(
     """
     <div style="text-align: center; color: #666; padding: 1rem;">
-        <p>🌐 Distributed Database System | Connected via Tailscale | 
+        <p>🌐 BingeBox - Distributed Database Mediation System | Connected via Tailscale | 
         <a href="https://github.com/deepankar-MT24031/iia_test" target="_blank">GitHub Repository</a></p>
     </div>
     """,
