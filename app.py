@@ -1,8 +1,6 @@
 import streamlit as st
 import asyncio
 
-# from database_wrapper import initialize_remote_databases, cached_search, cached_stats, get_health_status
-
 # Page config
 st.set_page_config(
     page_title="BingeBox - Database Mediation",
@@ -10,14 +8,15 @@ st.set_page_config(
     layout="wide"
 )
 
-# CSS for dark theme
+# CSS for light theme
 st.markdown("""
 <style>
-.stApp {background: #0e1117; color: #ffffff;}
+.stApp {background: #ffffff; color: #333333;}
 .main-header {font-size: 3rem; color: #e50914; text-align: center; margin-bottom: 1rem;}
 .filter-box, .chatbot-box, .mediation-box, .wrapper-box, .global-schema-box {
-    padding: 1rem; border-radius: 10px; margin: 0.5rem 0; background-color: rgba(255,255,255,0.05); color:white;
+    padding: 1rem; border-radius: 10px; margin: 0.5rem 0; background-color: #f0f2f6; color: #333333;
     height: 350px; overflow-y: auto;
+    border: 1px solid #e0e0e0;
 }
 .wrapper-box {height: 300px;}
 .global-schema-box {height: 400px;}
