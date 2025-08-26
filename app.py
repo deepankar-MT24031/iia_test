@@ -55,19 +55,24 @@ with top_col1:
 with top_col2:
     with st.container():
         st.markdown('<div class="custom-box chatbot-box">### 🤖 Chat Bot', unsafe_allow_html=True)
-        st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
-        for msg in st.session_state.chat_messages:
-            if msg["role"] == "bot":
-                st.markdown(f'🤖 {msg["message"]}')
-            else:
-                st.markdown(f'👤 {msg["message"]}')
-        st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Use a sub-container for the chat history
+        with st.container():
+            st.markdown('<div class="chat-history-container">', unsafe_allow_html=True)
+            for msg in st.session_state.chat_messages:
+                if msg["role"] == "bot":
+                    st.markdown(f'🤖 {msg["message"]}')
+                else:
+                    st.markdown(f'👤 {msg["message"]}')
+            st.markdown('</div>', unsafe_allow_html=True)
+
         chat_input = st.text_input("Ask BingeBot", placeholder="Ask about movies, series...", key="chat_input")
         if st.button("Send", key="send_chat") and chat_input:
             st.session_state.chat_messages.append({"role": "user", "message": chat_input})
             bot_response = f"Received your question: {chat_input}"
             st.session_state.chat_messages.append({"role": "bot", "message": bot_response})
             st.rerun()
+            
         st.markdown('</div>', unsafe_allow_html=True)
 
 # MIDDLE ROW: MEDIATION (Query Results)
