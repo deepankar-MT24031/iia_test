@@ -278,7 +278,7 @@ with top_col1:
         key="filter_networks"
     )
         
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # MEDIATION QUERY (Center top)
 with top_col2:
